@@ -179,13 +179,13 @@ class Videographer:
             # Other OS
             os.system("pkill -f ffmpeg")
 
-    def process(self):
+    def process(self, topic):
 
         print(colored("[+] Starting the video creation process", "green"))
 
         # Generate a script
         script = generate_script(
-            self.config.video_subject,
+            topic,
             self.config.paragraph_number,
             self.config.smart_llm_model,
             "english",  # have to replace this with config.voice
@@ -220,7 +220,7 @@ class Videographer:
 
             # Generate search terms
             search_terms = get_search_terms(
-                self.config.video_subject,
+                topic,
                 self.config.no_of_stock_videos,
                 script,
                 self.config.smart_llm_model,
@@ -247,13 +247,13 @@ class Videographer:
                 required_video_duration // self.config.image_video_duration
             ) + 1
 
-            image_prompts = generate_image_prompts(
-                number_of_images, self.config.video_subject
-            )
+            image_prompts = generate_image_prompts(number_of_images, topic)
             print(colored(f"[+] Image prompts: {image_prompts}", "blue"))
             image_urls = generate_images(
                 os.getenv("OPENAI_API_KEY"), image_prompts, self.project_space
             )
+
+            print(colored(f"[+] Image URLs: {image_urls}", "blue"))
 
             combined_video_path = video_from_images(
                 image_urls,
@@ -281,11 +281,12 @@ class Videographer:
             self.add_music_to_video(final_video_path)
 
         # Define metadata for the video, we will display this to the user, and use it for the YouTube upload
-        # title, description, keywords = generate_metadata(config.video_subject, script, config.smart_llm_model)
+        # title, description, keywords = generate_metadata(topic, script, config.smart_llm_model)
 
         self.kill_ffmpeg_processes()
 
 
 if __name__ == "__main__":
+    topic = input("Enter the topic for your video : ")
     video = Videographer()
-    video.process()
+    video.process(topic)

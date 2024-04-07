@@ -1,6 +1,6 @@
 # AI Video Creator 
 
-Automate the creation of YouTube Shorts, simply by providing a video topic to talk about.
+Automate the creation of short videos for instagram, youtube, tiktok , simply by providing a video topic to talk about.
 
 > **🎥** Watch the video on [YouTube](https://youtu.be/).
 
@@ -12,7 +12,7 @@ After you finished installing Python, you can install `AI Video Creator ` by fol
 
 ```bash
 git clone https://github.com/proxyvector/ai-video-creator
-cd MoneyPrinter
+cd ai-video-creator
 
 # Install requirements
 pip install -r requirements.txt
