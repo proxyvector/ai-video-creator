@@ -7,7 +7,6 @@ from typing import List
 import assemblyai as aai
 import requests
 import srt_equalizer
-from dotenv import load_dotenv
 from moviepy.editor import (
     AudioFileClip,
     CompositeVideoClip,
@@ -25,8 +24,6 @@ import math
 import moviepy.editor as mp
 import numpy
 from PIL import Image
-
-# load_dotenv("../.env")
 
 ASSEMBLY_AI_API_KEY = os.getenv("ASSEMBLY_AI_API_KEY")
 

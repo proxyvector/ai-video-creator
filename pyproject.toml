@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "ai-video-creator"
+version = "0.1.0"
+description = "Create videos with just an AI Prompt"
+authors = ["proxyvector <proxyvecto.rss@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+termcolor = "^2.4.0"
+moviepy = "^1.0.3"
+openai = "^1.16.2"
+pytube = "^15.0.0"
+assemblyai = "^0.24.0"
+srt-equalizer = "^0.1.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,7 +1,6 @@
 import os
 import uuid
 
-from config import Config
 from moviepy.editor import (
     AudioFileClip,
     CompositeAudioClip,
@@ -9,6 +8,9 @@ from moviepy.editor import (
     concatenate_audioclips,
 )
 from openai import OpenAI
+from termcolor import colored
+
+from config import Config
 from prompts import (
     generate_image_prompts,
     generate_images,
@@ -17,7 +19,6 @@ from prompts import (
     get_search_terms,
 )
 from search import search_for_stock_videos
-from termcolor import colored
 from tiktokvoice import tts
 from utils import choose_random_song
 from video import (
@@ -31,7 +32,7 @@ from video import (
 
 class Videographer:
     def __init__(self):
-        self.config = Config("videographer/config.json")
+        self.config = Config("config.json")
         self.project_space = self.create_temp_folder()
 
     def create_temp_folder(
