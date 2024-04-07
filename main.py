@@ -14,7 +14,6 @@ from config import Config
 from prompts import (
     generate_image_prompts,
     generate_images,
-    generate_metadata,
     generate_script,
     get_search_terms,
 )
