@@ -256,7 +256,6 @@ class Videographer:
             print(colored(f"[+] Image URLs: {image_urls}", "blue"))
 
             combined_video_path = video_from_images(
-                image_urls,
                 self.project_space,
                 self.config.image_video_duration,
                 required_video_duration,

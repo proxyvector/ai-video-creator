@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import uuid
@@ -5,6 +6,8 @@ from datetime import timedelta
 from typing import List
 
 import assemblyai as aai
+import moviepy.editor as mp
+import numpy
 import requests
 import srt_equalizer
 from moviepy.editor import (
@@ -19,11 +22,6 @@ from moviepy.video.tools.subtitles import SubtitlesClip
 from openai import OpenAI
 from PIL import Image
 from termcolor import colored
-import math
-
-import moviepy.editor as mp
-import numpy
-from PIL import Image
 
 ASSEMBLY_AI_API_KEY = os.getenv("ASSEMBLY_AI_API_KEY")
 
@@ -326,6 +324,7 @@ def generate_video(
 
     return f"{video_path}/output.mp4"
 
+
 def zoom_in_effect(clip, zoom_ratio=0.04):
     def effect(get_frame, t):
         img = Image.fromarray(get_frame(t))
@@ -350,27 +349,28 @@ def zoom_in_effect(clip, zoom_ratio=0.04):
     return clip.fl(effect)
 
 
-def video_from_images(
-    image_urls: List[str],
-    project_space: str,
-    image_video_duration: int,
-    max_duration: int):
+def video_from_images(project_space: str, image_video_duration: int, max_duration: int):
 
     size = (1024, 1792)
     video_id = uuid.uuid4()
     combined_video_path = f"{project_space}/videos/final_{video_id}.mp4"
+    img_list = os.listdir(f"{project_space}/images")
 
     slides = []
-    duration_left= max_duration
-    for n, url in enumerate(image_urls):
+    duration_left = max_duration
+    for n, path in enumerate(img_list):
+        full_path = f"{project_space}/images/{path}"
         if duration_left < 5:
             slides.append(
-                mp.ImageClip(url).set_fps(25).set_duration(duration_left).resize(size)
+                mp.ImageClip(full_path)
+                .set_fps(25)
+                .set_duration(duration_left)
+                .resize(size)
             )
             slides[n] = zoom_in_effect(slides[n], 0.04)
             break
         slides.append(
-            mp.ImageClip(url)
+            mp.ImageClip(full_path)
             .set_fps(25)
             .set_duration(image_video_duration)
             .resize(size)
