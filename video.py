@@ -353,6 +353,7 @@ def zoom_in_effect(clip, zoom_ratio=0.04):
 def video_from_images(
     image_urls: List[str],
     project_space: str,
+    image_video_duration: int,
     max_duration: int):
 
     size = (1024, 1792)
@@ -368,7 +369,12 @@ def video_from_images(
             )
             slides[n] = zoom_in_effect(slides[n], 0.04)
             break
-        slides.append(mp.ImageClip(url).set_fps(25).set_duration(5).resize(size))
+        slides.append(
+            mp.ImageClip(url)
+            .set_fps(25)
+            .set_duration(image_video_duration)
+            .resize(size)
+        )
         slides[n] = zoom_in_effect(slides[n], 0.04)
         duration_left -= 5
 

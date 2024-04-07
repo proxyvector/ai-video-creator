@@ -244,7 +244,9 @@ class Videographer:
                 )
             )
 
-            number_of_images = (required_video_duration // 5) + 1
+            number_of_images = (
+                required_video_duration // self.config.image_video_duration
+            ) + 1
 
             image_prompts = generate_image_prompts(
                 number_of_images, self.config.video_subject
@@ -255,7 +257,10 @@ class Videographer:
             )
 
             combined_video_path = video_from_images(
-                image_urls, self.project_space, required_video_duration
+                image_urls,
+                self.project_space,
+                self.config.image_video_duration,
+                required_video_duration,
             )
 
         # Put everything together

@@ -30,6 +30,7 @@ class Config:
             "https://filebin.net/2avx134kdibc4c3q/drive-download-20240209T180019Z-001.zip",
         )
         self.use_stock_videos = os.getenv("USE_STOCK_VIDEOS", False)
+        self.image_video_duration = int(os.getenv("IMAGE_VIDEO_DURATION", 5))
 
         self.load_config_file()
 
