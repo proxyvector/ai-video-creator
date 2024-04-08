@@ -16,5 +16,6 @@
     "automate_youtube_upload": false,
     "songs_zip_url": "",
     "use_stock_videos": false,
-    "image_video_duration": 10
+    "image_video_duration": 10,
+    "text_font": "Papyrus"
 }

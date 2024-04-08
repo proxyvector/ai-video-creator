@@ -2,12 +2,7 @@ import json
 import logging
 import os
 import random
-import sys
-import uuid
-import zipfile
 
-import requests
-from pytube import YouTube
 from termcolor import colored
 
 # Configure logging
@@ -32,16 +27,6 @@ def clean_dir(path: str) -> None:
         logger.info(colored(f"Cleaned {path} directory", "green"))
     except Exception as e:
         logger.error(f"Error occurred while cleaning directory {path}: {str(e)}")
-
-
-def fetch_youtube_songs() -> None:
-    """
-    Fetch youtube songs into the designated directory.
-    """
-
-    YouTube("https://www.youtube.com/watch?v=RmWLNlKmMBQ").streams.filter(
-        only_audio=True
-    ).first().download(filename=f"songs/{uuid.uuid4()}.mp3")
 
 
 def choose_random_song() -> str:

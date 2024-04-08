@@ -30,6 +30,7 @@ class Config:
         )
         self.use_stock_videos = os.getenv("USE_STOCK_VIDEOS", False)
         self.image_video_duration = int(os.getenv("IMAGE_VIDEO_DURATION", 5))
+        self.text_font = os.getenv("TEXT_FONT", "Arial")
 
         self.load_config_file()
 

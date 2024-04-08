@@ -301,7 +301,14 @@ class Videographer:
                 self.config.subtitles_position,
                 self.config.text_color or "#FFFF00",
                 f"{self.project_space}",
+                self.config.text_font,
             )
+
+            print(colored("************", "green"))
+            print(
+                colored(f"[+] Final video generated at : {final_video_path}", "green")
+            )
+            print(colored("************", "green"))
 
             if self.config.use_music:
                 self.add_music_to_video(final_video_path)

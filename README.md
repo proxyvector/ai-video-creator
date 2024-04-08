@@ -28,45 +28,31 @@ See [`config-example.json`](config-example.json) for the required environment va
 
 ## Usage 🛠️
 
-1. Copy the `.env.example` file to `.env` and fill in the required values
-1. Open `http://localhost:3000` in your browser
-1. Enter a topic to talk about
-1. Click on the "Generate" button
-1. Wait for the video to be generated
-1. The video's location is `MoneyPrinter/output.mp4`
+1. Copy the `config-example.json` file to `config.json` and fill in the required values
+2. Run the main script using the command `python main.py`
+3. Enter a topic to generate a video about and hit enter
+4. Wait for the video to be generated
+6. The output video's location is printed on the console.It is of the format`temp/<project-id>/output.mp4`
 
 ## Music 🎵
 
-To use your own music, compress all your MP3 Files into a ZIP file and upload it somewhere. Provide the link to the ZIP file in the Frontend.
+You can add music to your videos by putting all your mp3 files in the songs folder.
+You can also download royalty free music from youtube. Use the [`scripts/download_music.py`](scripts/download_music.py) file to download the music of any youtube video to the songs folder.
 
-It is recommended to use Services such as [Filebin](https://filebin.net) to upload your ZIP file. If you decide to use Filebin, provide the Frontend with the absolute path to the ZIP file by using More -> Download File, e.g. (use this [Popular TT songs ZIP](https://filebin.net/klylrens0uk2pnrg/drive-download-20240209T180019Z-001.zip), not this [Popular TT songs](https://filebin.net/2avx134kdibc4c3q))
-
-You can also just move your MP3 files into the `Songs` folder. 
+The main script selects a song at random from all the mp3 files in the songs folder and adds it to the video
 
 ## Fonts 🅰
+To change the font of the subtitles simply specify the font name in the config file.
+If you want to try a font not on your system, you need to install the font in the system first.Then you can specify the font in the config file.
 
-Add your fonts to the `fonts/` folder, and load them by specifying the font name on line `124` in `Backend/video.py`.
+## Raising Issues 🤔
+If you face any issues while installing or using this tool, you can raise an issue using [`github issues`](https://github.com/proxyvector/ai-video-creator/issues)
 
-## FAQ 🤔
-
-### My ImageMagick binary is not being detected
-
-Make sure you set your path to the ImageMagick binary correctly in the `.env` file, it should look something like this:
-
-```env
-IMAGEMAGICK_BINARY="C:\\Program Files\\ImageMagick-7.1.0-Q16\\magick.exe"
-```
-
-Don't forget to use double backslashes (`\\`) in the path, instead of one.
-
-### I can't install `playsound`: Wheel failed to build
-
-If you're having trouble installing `playsound`, you can try installing it using the following command:
-
-```bash
-pip install -U wheel
-pip install -U playsound
-```
 ## License 📝
 
 See [`LICENSE`](LICENSE) file for more information.
+
+# Connect 🤝
+
+If you liked my work, pls star it! This helps me know if I should build more stuff like this :)
+You can connect with me on [twitter](https://twitter.com/proxy_vector) 

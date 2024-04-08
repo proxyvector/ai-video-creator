@@ -254,6 +254,7 @@ def generate_video(
     subtitles_position: str,
     text_color: str,
     video_path: str,
+    text_font: str,
 ) -> str:
     """
     This function creates the final video, with subtitles and audio.
@@ -271,7 +272,7 @@ def generate_video(
     # Make a generator that returns a TextClip when called with consecutive
     generator = lambda txt: TextClip(
         txt,
-        font="Papyrus",
+        font=text_font,
         fontsize=80,
         color=text_color,
         bg_color="aqua",
