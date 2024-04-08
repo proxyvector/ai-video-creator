@@ -12,7 +12,6 @@ class Config:
         self.openai_api_key = os.getenv("OPENAI_API_KEY", None)
         self.pexels_api_key = os.getenv("PEXELS_API_KEY", None)
         self.assembly_ai_api_key = os.getenv("ASSEMBLY_AI_API_KEY", None)
-        self.video_subject = os.getenv("VIDEO_SUBJECT", "The history of the internet")
         self.no_of_stock_videos = int(os.getenv("NO_OF_STOCK_VIDEOS", 5))
         self.voice = os.getenv("VOICE", "english")
         self.voice_prefix = os.getenv("VOICE_PREFIX", "en")

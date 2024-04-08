@@ -30,6 +30,10 @@ from video import (
 
 
 class Videographer:
+    """
+    Videographer class.
+    """
+
     def __init__(self):
         self.config = Config("config.json")
         self.project_space = self.create_temp_folder()
@@ -37,6 +41,10 @@ class Videographer:
     def create_temp_folder(
         self,
     ):
+        """
+        Create a temporary folder for the project.
+        Subsequently create subfolders for videos, subtitles, audio, and images.
+        """
 
         project_name = uuid.uuid4()
 
@@ -56,6 +64,9 @@ class Videographer:
         return f"temp/{project_name}"
 
     def get_video_urls_from_search_terms(self, search_terms):
+        """
+        Get video URLs from search terms.
+        """
 
         video_urls = []
 
@@ -87,6 +98,9 @@ class Videographer:
         return video_urls
 
     def download_videos_to_temp_folder(self, video_urls):
+        """
+        Download videos to the temporary folder.
+        """
 
         video_paths = []
 
@@ -106,6 +120,9 @@ class Videographer:
         return video_paths
 
     def generate_speech_from_script(self, script):
+        """
+        Generate speech from script using TikTokVoice.
+        """
 
         # Split script into sentences
         sentences = script.split(". ")
@@ -129,6 +146,9 @@ class Videographer:
         return final_tts_path, temp_tts_paths, sentences
 
     def generate_speech_from_script_openai(self, script):
+        """
+        Generate speech from script using OpenAI API.
+        """
 
         speech_file_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -141,6 +161,9 @@ class Videographer:
         return speech_file_path, None, None
 
     def add_music_to_video(self, final_video_path):
+        """
+        Add music to the generated video.
+        """
 
         video_clip = VideoFileClip(final_video_path)
         # Select a random song
@@ -172,6 +195,10 @@ class Videographer:
     def kill_ffmpeg_processes(
         self,
     ):
+        """
+        Kill all ffmpeg processes.
+        """
+
         if os.name == "nt":
             # Windows
             os.system("taskkill /f /im ffmpeg.exe")
@@ -180,6 +207,9 @@ class Videographer:
             os.system("pkill -f ffmpeg")
 
     def process(self, topic):
+        """
+        Process the video creation.
+        """
 
         print(colored("[+] Starting the video creation process", "green"))
 
@@ -247,13 +277,13 @@ class Videographer:
                 required_video_duration // self.config.image_video_duration
             ) + 1
 
+            print(colored(f"[+] Number of images req : {number_of_images}", "blue"))
+
             image_prompts = generate_image_prompts(number_of_images, topic)
             print(colored(f"[+] Image prompts: {image_prompts}", "blue"))
-            image_urls = generate_images(
+            generate_images(
                 os.getenv("OPENAI_API_KEY"), image_prompts, self.project_space
             )
-
-            print(colored(f"[+] Image URLs: {image_urls}", "blue"))
 
             combined_video_path = video_from_images(
                 self.project_space,
@@ -272,12 +302,13 @@ class Videographer:
                 self.config.text_color or "#FFFF00",
                 f"{self.project_space}",
             )
+
+            if self.config.use_music:
+                self.add_music_to_video(final_video_path)
+
         except Exception as e:
             print(colored(f"[-] Error generating final video: {e}", "red"))
             final_video_path = None
-
-        if self.config.use_music:
-            self.add_music_to_video(final_video_path)
 
         # Define metadata for the video, we will display this to the user, and use it for the YouTube upload
         # title, description, keywords = generate_metadata(topic, script, config.smart_llm_model)
@@ -287,5 +318,4 @@ class Videographer:
 
 if __name__ == "__main__":
     topic = input("Enter the topic for your video : ")
-    video = Videographer()
-    video.process(topic)
+    Videographer().process(topic)

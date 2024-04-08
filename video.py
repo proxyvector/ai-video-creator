@@ -275,7 +275,7 @@ def generate_video(
         fontsize=80,
         color=text_color,
         bg_color="aqua",
-    ).set_opacity(0.7)
+    ).set_opacity(0.9)
 
     # def text_formatter(txt):
     #     text_clip = TextClip(

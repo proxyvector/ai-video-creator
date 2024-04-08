@@ -2,7 +2,7 @@
 
 Automate the creation of short videos for instagram, youtube, tiktok , simply by providing a video topic to talk about.
 
-> **🎥** Watch the video on [YouTube](https://youtu.be/).
+> **🎥** Watch the video on [YouTube](https://youtu.be/4Z_FKd6UPE0).
 
 ## Installation 📥
 
@@ -17,16 +17,14 @@ cd ai-video-creator
 # Install requirements
 pip install -r requirements.txt
 
-# Copy .env.example and fill out values
-cp .env.example .env
+# Copy config-example.json and fill out values
+cp config-example.json config.json
 
 # Run the main script
 python main.py
 ```
 
-See [`.env.example`](.env.example) for the required environment variables.
-
-If you need help, open [EnvironmentVariables.md](EnvironmentVariables.md) for more information.
+See [`config-example.json`](config-example.json) for the required environment variables.
 
 ## Usage 🛠️
 

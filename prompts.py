@@ -359,6 +359,7 @@ def generate_metadata(
 def generate_images(openai_key, prompt_list, project_space):
     """
     Generate images for a video, depending on the subject of the video.
+    Subsequently, save the images to the images folder in the project space.
     """
 
     # Build prompt
@@ -403,5 +404,3 @@ def generate_images(openai_key, prompt_list, project_space):
                 print(colored("[-] DALL-E returned an empty response.", "red"))
         except Exception as e:
             print(colored(f"[-] Error generating image: {e}", "red"))
-
-    return urls

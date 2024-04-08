@@ -1,0 +1,20 @@
+{
+    "openai_api_key": "<your openai api key>",
+    "pexels_api_key": "<your pexels api key>",
+    "assembly_ai_api_key": "<your assemblyai api key>",
+    "custom_prompt": "",
+    "voice": "en_us_001",
+    "voice_prefix": "en",
+    "no_of_stock_videos": 5,
+    "paragraph_number": 1,
+    "fast_llm_model": "gpt-3.5-turbo-16k",
+    "smart_llm_model": "gpt-4-1106-preview",
+    "n_threads": "2",
+    "subtitles_position": "center,bottom",
+    "text_color": "white",
+    "use_music": true,
+    "automate_youtube_upload": false,
+    "songs_zip_url": "",
+    "use_stock_videos": false,
+    "image_video_duration": 10
+}

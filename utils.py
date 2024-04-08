@@ -60,3 +60,4 @@ def choose_random_song() -> str:
         logger.error(
             colored(f"Error occurred while choosing random song: {str(e)}", "red")
         )
+        raise Exception(f"Error occurred while choosing random song: {str(e)}") from e
