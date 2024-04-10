@@ -202,3 +202,30 @@ def tts(
 
     except Exception as e:
         print(colored(f"[-] An error occurred during TTS: {e}", "red"))
+
+
+def generate_speech_from_script(self, script):
+    """
+    Generate speech from script using TikTokVoice.
+    """
+
+    # Split script into sentences
+    sentences = script.split(". ")
+
+    # Remove empty strings
+    sentences = list(filter(lambda x: x != "", sentences))
+    temp_tts_paths = []
+
+    # Generate TTS for every sentence
+    for sentence in sentences:
+        current_tts_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
+        tts(sentence, self.config.voice, filename=current_tts_path)
+        audio_clip = AudioFileClip(current_tts_path)
+        temp_tts_paths.append(audio_clip)
+
+    # Combine all TTS files using moviepy
+    final_audio = concatenate_audioclips(temp_tts_paths)
+    final_tts_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
+    final_audio.write_audiofile(final_tts_path)
+
+    return final_tts_path, temp_tts_paths, sentences

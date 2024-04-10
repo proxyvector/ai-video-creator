@@ -1,14 +1,14 @@
 import json
 import os
 import re
+from io import BytesIO
 from typing import List, Tuple
 
 # import g4f
 import openai
-from termcolor import colored
-from PIL import Image
 import requests
-from io import BytesIO
+from PIL import Image
+from termcolor import colored
 
 # import google.generativeai as genai
 
@@ -73,20 +73,21 @@ def generate_response(prompt: str, ai_model: str) -> str:
 
 
 def generate_script(
+    project_space: str,
     video_subject: str,
     paragraph_number: int,
     ai_model: str,
     voice: str,
-    customPrompt: str,
+    custom_prompt: str,
 ) -> str:
     """
     Generate a script for a video, depending on the subject of the video, the number of paragraphs, and the AI model.
     """
 
-    # Build prompt
+    print(colored("[+] Generating Video Script ...\n", "green"))
 
-    if customPrompt:
-        prompt = customPrompt
+    if custom_prompt:
+        prompt = custom_prompt
     else:
         prompt = """
             Generate a script for an engaging youtube short video, depending on the subject of the video.
@@ -116,12 +117,8 @@ def generate_script(
 
     """
 
-    print(colored("[+] Generating Script ...\n", "green"))
-
     # Generate script
     response = generate_response(prompt, ai_model)
-
-    print(colored(response, "cyan"))
 
     # Return the generated script
     if response:
@@ -145,14 +142,19 @@ def generate_script(
 
         # Print to console the number of paragraphs used
         print(
-            colored(f"Number of paragraphs used: {len(selected_paragraphs)}", "green")
+            colored(f"[+] Number of paragraphs generated: {len(selected_paragraphs)}", "green")
         )
-        print(colored("[+] Script generated!\n", "green"))
+
+        with open(f"{project_space}/script.txt", "w", encoding="utf-8") as f:
+            f.write(final_script)
+
+        print(colored("[+] Video script generated and saved !\n", "green"))
 
         return final_script
     else:
         print(colored("[-] GPT returned an empty response.", "red"))
         return None
+
 
 def generate_image_prompts(amount: int, subject: str) -> List[str]:
     """
@@ -225,6 +227,7 @@ def generate_image_prompts(amount: int, subject: str) -> List[str]:
 
     # Return prompts
     return prompts
+
 
 def get_search_terms(
     video_subject: str, amount: int, script: str, ai_model: str
@@ -373,15 +376,15 @@ def generate_images(openai_key, prompt_list, project_space):
     for i, prompt in enumerate(prompt_list):
 
         final_prompt = f"""
-        Generate an illustration for {prompt}
+        Generate an image for {prompt}
         
         THERE SHOULDN'T BE ANY TEXT IN THE IMAGE
         THERE SHOULDN'T BE ANY DEFORMED LIMBS IN THE IMAGE
+        THE IMAGE SHOULD BE VERTICALLY ORIENTED
 
         """
 
         try:
-
 
             response = client.images.generate(
                 model="dall-e-3",

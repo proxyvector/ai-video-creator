@@ -4,9 +4,11 @@ import uuid
 from moviepy.editor import (
     AudioFileClip,
     CompositeAudioClip,
+    CompositeVideoClip,
+    TextClip,
     VideoFileClip,
-    concatenate_audioclips,
 )
+from moviepy.video.tools.subtitles import SubtitlesClip
 from openai import OpenAI
 from termcolor import colored
 
@@ -18,15 +20,8 @@ from prompts import (
     get_search_terms,
 )
 from search import search_for_stock_videos
-from tiktokvoice import tts
 from utils import choose_random_song
-from video import (
-    combine_videos,
-    generate_subtitles,
-    generate_video,
-    save_video,
-    video_from_images,
-)
+from video import combine_videos, generate_subtitles, save_video, video_from_images
 
 
 class Videographer:
@@ -34,9 +29,13 @@ class Videographer:
     Videographer class.
     """
 
-    def __init__(self):
+    def __init__(self, topic, stage=0, project_space=None):
         self.config = Config("config.json")
-        self.project_space = self.create_temp_folder()
+        self.topic = topic
+        self.project_space = (
+            f"temp/{project_space}" if project_space else self.create_temp_folder()
+        )
+        self.stage = stage
 
     def create_temp_folder(
         self,
@@ -119,38 +118,18 @@ class Videographer:
 
         return video_paths
 
-    def generate_speech_from_script(self, script):
-        """
-        Generate speech from script using TikTokVoice.
-        """
-
-        # Split script into sentences
-        sentences = script.split(". ")
-
-        # Remove empty strings
-        sentences = list(filter(lambda x: x != "", sentences))
-        temp_tts_paths = []
-
-        # Generate TTS for every sentence
-        for sentence in sentences:
-            current_tts_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
-            tts(sentence, self.config.voice, filename=current_tts_path)
-            audio_clip = AudioFileClip(current_tts_path)
-            temp_tts_paths.append(audio_clip)
-
-        # Combine all TTS files using moviepy
-        final_audio = concatenate_audioclips(temp_tts_paths)
-        final_tts_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
-        final_audio.write_audiofile(final_tts_path)
-
-        return final_tts_path, temp_tts_paths, sentences
-
-    def generate_speech_from_script_openai(self, script):
+    def generate_speech_from_script_openai(self):
         """
         Generate speech from script using OpenAI API.
         """
+        print(colored("[+] Generating speech from script...", "green"))
 
-        speech_file_path = f"{self.project_space}/audio/{uuid.uuid4()}.mp3"
+        script = ""
+
+        with open(f"{self.project_space}/script.txt", "r", encoding="utf-8") as f:
+            script = (" ").join(f.readlines())
+
+        speech_file_path = f"{self.project_space}/audio/speech.mp3"
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.audio.speech.create(
             model="tts-1", voice="alloy", input=script
@@ -158,12 +137,14 @@ class Videographer:
 
         response.stream_to_file(speech_file_path)
 
-        return speech_file_path, None, None
+        print(colored("[+] Done generating speech from script.", "green"))
 
-    def add_music_to_video(self, final_video_path):
+    def add_music_to_video(self):
         """
         Add music to the generated video.
         """
+
+        final_video_path = f"{self.project_space}/output.mp4"
 
         video_clip = VideoFileClip(final_video_path)
         # Select a random song
@@ -206,123 +187,184 @@ class Videographer:
             # Other OS
             os.system("pkill -f ffmpeg")
 
-    def process(self, topic):
+    def generate_video_from_stock_videos(self):
         """
-        Process the video creation.
+        Generate video from stock videos.
         """
 
-        print(colored("[+] Starting the video creation process", "green"))
+        script = ""
 
-        # Generate a script
-        script = generate_script(
-            topic,
+        with open(f"{self.project_space}/script.txt", "r", encoding="utf-8") as f:
+            script = (" ").join(f.readlines())
+
+        search_terms = get_search_terms(
+            self.topic,
+            self.config.no_of_stock_videos,
+            script,
+            self.config.smart_llm_model,
+        )
+
+        video_urls = self.get_video_urls_from_search_terms(search_terms)
+
+        video_duration = AudioFileClip(
+            f"{self.project_space}/audio/speech.mp3"
+        ).duration
+
+        combined_video_path = combine_videos(
+            video_urls,
+            video_duration,
+            self.config.n_threads or 2,
+            self.project_space,
+        )
+
+        return combined_video_path
+
+    def generate_video_from_images(self):
+        """
+        Generate video from dalle images.
+        """
+
+        video_duration = AudioFileClip(
+            f"{self.project_space}/audio/speech.mp3"
+        ).duration
+
+        number_of_images = (video_duration // self.config.image_video_duration) + 1
+
+        print(colored(f"[+] Required Video Duration: {video_duration}", "blue"))
+        print(colored(f"[+] Number of images req : {number_of_images}", "blue"))
+
+        image_prompts = generate_image_prompts(number_of_images, self.topic)
+        generate_images(os.getenv("OPENAI_API_KEY"), image_prompts, self.project_space)
+        video_from_images(
+            self.project_space,
+            self.config.image_video_duration,
+            video_duration,
+        )
+
+    def generate_script(self):
+        """
+        Generate script for the video.
+        """
+
+        generate_script(
+            self.project_space,
+            self.topic,
             self.config.paragraph_number,
             self.config.smart_llm_model,
             "english",  # have to replace this with config.voice
             self.config.custom_prompt,
         )
 
-        # final_tts_path, temp_tts_paths, sentences = self.generate_speech_from_script(
-        #     script
-        # )
+    def generate_subtitles(self):
+        """
+        Generate subtitles for the video.
+        """
 
-        final_tts_path, temp_tts_paths, sentences = (
-            self.generate_speech_from_script_openai(script)
+        generate_subtitles(
+            self.project_space,
+            voice=self.config.voice_prefix,
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
         )
 
-        # Generate subtitles
+    def generate_video(self):
+        """
+        Generate the final video.
+        """
+
+        subtitles_path = f"{self.project_space}/subtitles/subtitles.srt"
+        tts_path = f"{self.project_space}/audio/speech.mp3"
+        combined_video_path = f"{self.project_space}/videos/final_raw.mp4"
+
+        # Split the subtitles position into horizontal and vertical
+        horizontal_subtitles_position, vertical_subtitles_position = (
+            self.config.subtitles_position.split(",")
+        )
+
+        def on_subtitles_read(txt):
+            return TextClip(
+                txt,
+                font=self.config.text_font,
+                fontsize=80,
+                color=self.config.text_color or "#FFFF00",
+                bg_color="aqua",
+            ).set_opacity(0.9)
+
+        # Burn the subtitles into the video
+        subtitles = SubtitlesClip(subtitles_path, on_subtitles_read)
+
+        result = CompositeVideoClip(
+            [
+                VideoFileClip(combined_video_path),
+                subtitles.set_pos(
+                    (horizontal_subtitles_position, vertical_subtitles_position)
+                ),
+            ]
+        )
+
+        # Add the audio
+        audio = AudioFileClip(tts_path)
+        result = result.set_audio(audio)
+
+        result.write_videofile(
+            f"{self.project_space}/output.mp4", threads=self.config.n_threads or 2
+        )
+
+    def process(self):
+        """
+        Process the video creation.
+        """
+
         try:
-            subtitles_path = generate_subtitles(
-                audio_path=final_tts_path,
-                sentences=sentences,
-                audio_clips=temp_tts_paths,
-                voice=self.config.voice_prefix,
-                subtitles_path=f"{self.project_space}/subtitles",
-                openai_api_key=os.getenv("OPENAI_API_KEY"),
-            )
-        except Exception as e:
-            print(colored(f"[-] Error generating subtitles: {e}", "red"))
-            subtitles_path = None
 
-        required_video_duration = AudioFileClip(final_tts_path).duration
+            print(colored("[+] Starting the video creation process", "green"))
 
-        if self.config.use_stock_videos:
+            if self.stage < 1:
+                # Generate script
+                self.generate_script()
 
-            # Generate search terms
-            search_terms = get_search_terms(
-                topic,
-                self.config.no_of_stock_videos,
-                script,
-                self.config.smart_llm_model,
-            )
+            if self.stage < 2:
+                # Generate speech
+                self.generate_speech_from_script_openai()
 
-            video_urls = self.get_video_urls_from_search_terms(search_terms)
+            if self.stage < 3:
+                # Generate subtitles
+                self.generate_subtitles()
 
-            combined_video_path = combine_videos(
-                video_urls,
-                required_video_duration,
-                self.config.n_threads or 2,
-                f"{self.project_space}",
-            )
+            if self.stage < 4:
+                # Generate raw video
+                if self.config.use_stock_videos:
+                    self.generate_video_from_stock_videos()
+                else:
+                    self.generate_video_from_images()
 
-        else:
+            if self.stage < 5:
+                # Generate final video with speech and subtitles
+                self.generate_video()
 
-            print(
-                colored(
-                    f"[+] Required Video Duration: {required_video_duration}", "blue"
-                )
-            )
+                print(colored("************", "green"))
+                print(colored(f"[+] Video : {self.project_space}/output.mp4", "green"))
+                print(colored("************", "green"))
 
-            number_of_images = (
-                required_video_duration // self.config.image_video_duration
-            ) + 1
+            if self.stage < 6:
 
-            print(colored(f"[+] Number of images req : {number_of_images}", "blue"))
-
-            image_prompts = generate_image_prompts(number_of_images, topic)
-            print(colored(f"[+] Image prompts: {image_prompts}", "blue"))
-            generate_images(
-                os.getenv("OPENAI_API_KEY"), image_prompts, self.project_space
-            )
-
-            combined_video_path = video_from_images(
-                self.project_space,
-                self.config.image_video_duration,
-                required_video_duration,
-            )
-
-        # Put everything together
-        try:
-            final_video_path = generate_video(
-                combined_video_path,
-                final_tts_path,
-                subtitles_path,
-                self.config.n_threads or 2,
-                self.config.subtitles_position,
-                self.config.text_color or "#FFFF00",
-                f"{self.project_space}",
-                self.config.text_font,
-            )
-
-            print(colored("************", "green"))
-            print(
-                colored(f"[+] Final video generated at : {final_video_path}", "green")
-            )
-            print(colored("************", "green"))
-
-            if self.config.use_music:
-                self.add_music_to_video(final_video_path)
+                # Add music to the video
+                if self.config.use_music:
+                    self.add_music_to_video()
 
         except Exception as e:
-            print(colored(f"[-] Error generating final video: {e}", "red"))
-            final_video_path = None
-
-        # Define metadata for the video, we will display this to the user, and use it for the YouTube upload
-        # title, description, keywords = generate_metadata(topic, script, config.smart_llm_model)
-
-        self.kill_ffmpeg_processes()
+            print(colored(f"[-] Error generating video: {e}", "red"))
+        finally:
+            print(colored("[+] Cleaning up...", "green"))
+            self.kill_ffmpeg_processes()
 
 
 if __name__ == "__main__":
     topic = input("Enter the topic for your video : ")
-    Videographer().process(topic)
+    Videographer(topic).process()
+
+    # topic = "3 reasons rust is better than python"
+    # Videographer(
+    #     topic,
+    #     4,
+    #     "ab6e7366-3cb6-4fad-93da-820e92cd00d8",
+    # ).process()

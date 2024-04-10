@@ -126,11 +126,8 @@ def __generate_subtitles_locally(
 
 
 def generate_subtitles(
-    audio_path: str,
-    sentences: List[str],
-    audio_clips: List[AudioFileClip],
+    project_space: str,
     voice: str,
-    subtitles_path: str,
     api_key: str = "",
     openai_api_key: str = "",
 ) -> str:
@@ -146,8 +143,9 @@ def generate_subtitles(
         str: The path to the generated subtitles.
     """
 
-    # Save subtitles
-    subtitles_path = f"{subtitles_path}/{uuid.uuid4()}.srt"
+    print(colored("[+] Generating subtitles...", "green"))
+
+    audio_path = f"{project_space}/audio/speech.mp3"
 
     if api_key is not None and api_key != "":
         print(colored("[+] Creating subtitles using AssemblyAI", "green"))
@@ -156,18 +154,17 @@ def generate_subtitles(
         print(colored("[+] Creating subtitles using OpenAI", "green"))
         subtitles = __generate_subtitles_whisper(audio_path, openai_api_key)
     else:
-        print(colored("[+] Creating subtitles locally", "green"))
-        subtitles = __generate_subtitles_locally(sentences, audio_clips)
+        print(colored("[+] No valid method provided for generating subtitles", "red"))
 
-    with open(subtitles_path, "w") as file:
-        file.write(subtitles)
+    subtitles_path = f"{project_space}/subtitles/subtitles.srt"
+
+    with open(subtitles_path, "w", encoding="utf-8") as file:
+        file.write(subtitles.strip())
 
     # Equalize subtitles
     srt_equalizer.equalize_srt_file(subtitles_path, subtitles_path, 32)
 
-    print(colored("[+] Subtitles generated.", "green"))
-
-    return subtitles_path
+    print(colored("[+] Done generating subtitles.", "green"))
 
 
 def combine_videos(
@@ -186,7 +183,7 @@ def combine_videos(
         str: The path to the combined video.
     """
     video_id = uuid.uuid4()
-    combined_video_path = f"{project_space}/videos/final_{video_id}.mp4"
+    combined_video_path = f"{project_space}/videos/final_raw.mp4"
 
     # Required duration of each clip
     # req_dur = max_duration / len(video_paths)
@@ -353,8 +350,7 @@ def zoom_in_effect(clip, zoom_ratio=0.04):
 def video_from_images(project_space: str, image_video_duration: int, max_duration: int):
 
     size = (1024, 1792)
-    video_id = uuid.uuid4()
-    combined_video_path = f"{project_space}/videos/final_{video_id}.mp4"
+    combined_video_path = f"{project_space}/videos/final_raw.mp4"
     img_list = os.listdir(f"{project_space}/images")
 
     slides = []
@@ -370,6 +366,7 @@ def video_from_images(project_space: str, image_video_duration: int, max_duratio
             )
             slides[n] = zoom_in_effect(slides[n], 0.04)
             break
+
         slides.append(
             mp.ImageClip(full_path)
             .set_fps(25)
@@ -377,9 +374,7 @@ def video_from_images(project_space: str, image_video_duration: int, max_duratio
             .resize(size)
         )
         slides[n] = zoom_in_effect(slides[n], 0.04)
-        duration_left -= 5
+        duration_left -= image_video_duration
 
     video = mp.concatenate_videoclips(slides)
     video.write_videofile(combined_video_path)
-
-    return combined_video_path
