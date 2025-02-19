@@ -42,6 +42,7 @@ You can also download royalty free music from youtube. Use the [`scripts/downloa
 The main script selects a song at random from all the mp3 files in the songs folder and adds it to the video
 
 ## Fonts 🅰
+
 To change the font of the subtitles simply specify the font name in the config file.
 If you want to try a font not on your system, you need to install the font in the system first.Then you can specify the font in the config file.
 
